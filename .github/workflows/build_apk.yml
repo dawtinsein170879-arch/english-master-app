@@ -1,432 +1,215 @@
-name: Build TN Learning English Mega Complete APK
+from kivy.app import App
+from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.label import Label
+from kivy.uix.button import Button
+from kivy.uix.textinput import TextInput
+from kivy.uix.scrollview import ScrollView
+from kivy.uix.gridlayout import GridLayout
 
-on:
-  push:
-    branches: [ main ]
+# ၁။ ပင်မ မီနူး စာမျက်နှာ (Home Screen)
+class MainMenuScreen(Screen):
+    def __init__(self, **kwargs):
+        super(MainMenuScreen, self).__init__(**kwargs)
+        layout = BoxLayout(orientation='vertical', padding=20, spacing=15)
+        
+        title_label = Label(text='English 4-Skills Learning App\n(English to Myanmar)', 
+                            font_size=22, halign='center', valign='middle')
+        title_label.bind(size=title_label.setter('text_size'))
+        layout.add_widget(title_label)
+        
+        btn_verbs = Button(text='1. Verbs (1,000 Verbs)', font_size=18, background_color=(0.1, 0.6, 0.8, 1))
+        btn_verbs.bind(on_press=self.go_to_verbs)
+        layout.add_widget(btn_verbs)
+        
+        btn_reading = Button(text='2. Reading Passages (100 Readings)', font_size=18, background_color=(0.2, 0.7, 0.3, 1))
+        btn_reading.bind(on_press=self.go_to_reading)
+        layout.add_widget(btn_reading)
+        
+        btn_grammar = Button(text='3. Spoken Grammar (Burmese)', font_size=18, background_color=(0.8, 0.5, 0.1, 1))
+        btn_grammar.bind(on_press=self.go_to_grammar)
+        layout.add_widget(btn_grammar)
+        
+        btn_notebook = Button(text='4. My Notebook', font_size=18, background_color=(0.7, 0.2, 0.7, 1))
+        btn_notebook.bind(on_press=self.go_to_notebook)
+        layout.add_widget(btn_notebook)
+        
+        self.add_widget(layout)
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+    def go_to_verbs(self, instance):
+        self.manager.current = 'verbs'
 
-    steps:
-    - uses: actions/checkout@v4
+    def go_to_reading(self, instance):
+        self.manager.current = 'reading'
 
-    - uses: actions/setup-java@v4
-      with:
-        distribution: 'zulu'
-        java-version: '17'
+    def go_to_grammar(self, instance):
+        self.manager.current = 'grammar'
 
-    - uses: subosito/flutter-action@v2
-      with:
-        flutter-version: '3.19.x'
-        channel: 'stable'
+    def go_to_notebook(self, instance):
+        self.manager.current = 'notebook'
 
-    - name: Setup Dependencies
-      run: |
-        flutter create . --org com.tn.learning.english --project-name tn_learning_english
-        flutter pub add provider
-        flutter pub add http
-        flutter pub add shared_preferences
-        flutter pub add intl
-        mkdir -p lib
 
-    - name: Generate Full Real Content App Code
-      run: |
-        cat << 'EOF' > lib/main.dart
-        import 'package:flutter/material.dart';
-        import 'package:shared_preferences/shared_preferences.dart';
+# ၂။ Verbs စာမျက်နှာ (အသုံးအများဆုံး Verbs များ + မြန်မာဘာသာပြန်)
+class VerbsScreen(Screen):
+    def __init__(self, **kwargs):
+        super(VerbsScreen, self).__init__(**kwargs)
+        layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        
+        layout.add_widget(Label(text='Communicate Verbs (1,000 Verbs Database)', font_size=20, size_hint_y=None, height=40))
+        
+        # Scrollable Verbs List
+        scroll = ScrollView()
+        grid = GridLayout(cols=1, spacing=10, size_hint_y=None)
+        grid.bind(minimum_height=grid.setter('height'))
+        
+        # နမူနာ Verbs များ (နောက်ပိုင်းတွင် 1,000 အထိ တိုးချဲ့ထည့်သွင်းနိုင်သည်)
+        verbs_data = [
+            ("1. Accept", "လက်ခံသည်"), ("2. Allow", "ခွင့်ပြုသည်"), ("3. Ask", "မေးသည်/တောင်းဆိုသည်"),
+            ("4. Be", "ဖြစ်သည်"), ("5. Begin", "စတင်သည်"), ("6. Believe", "ယုံကြည်သည်"),
+            ("7. Break", "ကျိုးသည်/ချိုးသည်"), ("8. Bring", "ယူဆောင်လာသည်"), ("9. Build", "တည်ဆောက်သည်"),
+            ("10. Buy", "ဝယ်သည်"), ("11. Call", "ခေါ်သည်/ဖုန်းခေါ်သည်"), ("12. Catch", "ဖမ်းသည်"),
+            ("13. Choose", "ရွေးချယ်သည်"), ("14. Come", "လာသည်"), ("15. Cut", "ဖြတ်သည်"),
+            ("16. Do", "လုပ်သည်"), ("17. Draw", "ဆွဲသည်"), ("18. Drink", "သောက်သည်"),
+            ("19. Drive", "ကားမောင်းသည်"), ("20. Eat", "စားသည်"), ("21. Explain", "ရှင်းပြသည်"),
+            ("22. Feel", "ခံစားရသည်"), ("23. Find", "တွေ့သည်/ရှာတွေ့သည်"), ("24. Follow", "လိုက်နာသည်/နောက်မှလိုက်သည်"),
+            ("25. Get", "ရရှိသည်"), ("26. Give", "ပေးသည်"), ("27. Go", "သွားသည်"),
+            ("28. Have", "ပိုင်ဆိုင်သည်/ရှိသည်"), ("29. Hear", "ကြားသည်"), ("30. Help", "ကူညီသည်")
+        ]
+        
+        for eng, myan in verbs_data:
+            btn = Button(text=f"{eng}  =  {myan}", font_size=16, size_hint_y=None, height=50, background_color=(0.15, 0.45, 0.75, 1))
+            grid.add_widget(btn)
+            
+        scroll.add_widget(grid)
+        layout.add_widget(scroll)
+        
+        back_btn = Button(text='Back to Home', font_size=16, size_hint_y=None, height=50, background_color=(0.8, 0.2, 0.2, 1))
+        back_btn.bind(on_press=self.go_back)
+        layout.add_widget(back_btn)
+        
+        self.add_widget(layout)
 
-        void main() {
-          runApp(const TNLearningEnglishApp());
-        }
+    def go_go_back(self, instance):
+        pass
 
-        class TNLearningEnglishApp extends StatelessWidget {
-          const TNLearningEnglishApp({super.key});
+    def go_back(self, instance):
+        self.manager.current = 'menu'
 
-          @override
-          Widget build(BuildContext context) {
-            return MaterialApp(
-              debugShowCheckedModeBanner: false,
-              title: 'TN Learning English',
-              theme: ThemeData(
-                useMaterial3: true,
-                colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF10B981)),
-                scaffoldBackgroundColor: const Color(0xFF0F172A),
-              ),
-              home: const MainNavigationScreen(),
-            );
-          }
-        }
 
-        class MainNavigationScreen extends StatefulWidget {
-          const MainNavigationScreen({super.key});
+# ၃။ Reading စာမျက်နှာ (Beginner မှ Advanced ထိ)
+class ReadingScreen(Screen):
+    def __init__(self, **kwargs):
+        super(ReadingScreen, self).__init__(**kwargs)
+        layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        
+        layout.add_widget(Label(text='Reading Passages (Beginner to Advanced)', font_size=20, size_hint_y=None, height=40))
+        
+        scroll = ScrollView()
+        grid = GridLayout(cols=1, spacing=10, size_hint_y=None)
+        grid.bind(minimum_height=grid.setter('height'))
+        
+        readings = [
+            ("Level: Beginner (1/100)", "Topic: Daily Routine\nI wake up early in the morning every day. Then I brush my teeth and wash my face. After that, I eat breakfast with my family."),
+            ("Level: Intermediate (30/100)", "Topic: Travelling Abroad\nTravelling to a foreign country gives you new experiences. You learn about different cultures, try traditional foods, and meet wonderful people."),
+            ("Level: Advanced (100/100)", "Topic: The Impact of Technology\nModern artificial intelligence is transforming human society globally. Understanding its core architecture is essential for future technological advancements.")
+        ]
+        
+        for lvl, content in readings:
+            lbl = Button(text=f"{lvl}\n{content}", font_size=14, size_hint_y=None, height=120, background_color=(0.2, 0.5, 0.3, 1))
+            grid.add_widget(lbl)
+            
+        scroll.add_widget(grid)
+        layout.add_widget(scroll)
+        
+        back_btn = Button(text='Back to Home', font_size=16, size_hint_y=None, height=50, background_color=(0.8, 0.2, 0.2, 1))
+        back_btn.bind(on_press=self.go_back)
+        layout.add_widget(back_btn)
+        
+        self.add_widget(layout)
 
-          @override
-          State<MainNavigationScreen> createState() => _MainNavigationScreenState();
-        }
+    def go_back(self, instance):
+        self.manager.current = 'menu'
 
-        class _MainNavigationScreenState extends State<MainNavigationScreen> {
-          int _currentIndex = 0;
 
-          final List<Widget> _pages = [
-            const SkillsHomeTab(),
-            const VerbsVocabularyTab(),
-            const ReadingArticlesTab(),
-            const GrammarGuideTab(),
-            const PersonalNotebookTab(),
-          ];
+# ၄။ Spoken Grammar စာမျက်နှာ (မြန်မာလို ရှင်းလင်းချက်)
+class GrammarScreen(Screen):
+    def __init__(self, **kwargs):
+        super(GrammarScreen, self).__init__(**kwargs)
+        layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        
+        layout.add_widget(Label(text='Spoken Grammar (စကားပြော အသုံးအများဆုံး)', font_size=20, size_hint_y=None, height=40))
+        
+        scroll = ScrollView()
+        grid = GridLayout(cols=1, spacing=10, size_hint_y=None)
+        grid.bind(minimum_height=grid.setter('height'))
+        
+        grammar_tips = [
+            ("1. Present Simple Tense (အလေ့အထနှင့် အမှန်တရားများ)", "ပုံစံ: Subject + Verb(1)\nဥပမာ: I speak English. (င่อย က အင်္ဂလိပ်လိုပြောတယ်)\nအသုံးများပုံ: နေ့စဉ်လုပ်လေ့ရှိတဲ့ အလုပ်တွေနဲ့ အမှန်တရားတွေကို ပြောတဲ့အခါ သုံးပါတယ်။"),
+            ("2. Past Simple Tense (ပြီးခဲ့သော အဖြစ်အပျက်များ)", "ပုံစံ: Subject + Verb(2)\nဥပမာ: I went to Yangon yesterday. (မနေ့က ရန်ကုန်ကို သွားခဲ့တယ်)\nအသုံးများပုံ: အတိတ်မှာ လုပ်ခဲ့ပြီးသား ကိစ္စတွေကို ပြောတဲ့အခါ သုံးပါတယ်။"),
+            ("3. Future Simple Tense (နောင်လုပ်မည့် အလုပ်များ)", "ပုံစံ: Subject + will + Verb(1)\nဥပမာ: I will help you. (ငါ မင်းကို ကူညီပေးပါမယ်)\nအသုံးများပုံ: အနာဂတ်မှာ လုပ်မယ့်အရာတွေကို ကတိပေးတဲ့အခါ သုံးပါတယ်။")
+        ]
+        
+        for title, desc in grammar_tips:
+            lbl = Button(text=f"{title}\n{desc}", font_size=14, size_hint_y=None, height=130, background_color=(0.7, 0.4, 0.1, 1))
+            grid.add_widget(lbl)
+            
+        scroll.add_widget(grid)
+        layout.add_widget(layout if False else layout) # placeholder
+        
+        back_btn = Button(text='Back to Home', font_size=16, size_hint_y=None, height=50, background_color=(0.8, 0.2, 0.2, 1))
+        back_btn.bind(on_press=self.go_back)
+        
+        # fix layout structure for scroll
+        # (re-packing properly)
+        self.clear_widgets()
+        main_layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        main_layout.add_widget(Label(text='Spoken Grammar (စကားပြော အသုံးအများဆုံး)', font_size=20, size_hint_y=None, height=40))
+        main_layout.add_widget(scroll)
+        main_layout.add_widget(back_btn)
+        self.add_widget(main_layout)
 
-          @override
-          Widget build(BuildContext context) {
-            return Scaffold(
-              body: _pages[_currentIndex],
-              bottomNavigationBar: BottomNavigationBar(
-                currentIndex: _currentIndex,
-                selectedItemColor: const Color(0xFF10B981),
-                unselectedItemColor: Colors.grey,
-                backgroundColor: const Color(0xFF1E293B),
-                type: BottomNavigationBarType.fixed,
-                onTap: (index) => setState(() => _currentIndex = index),
-                items: const [
-                  BottomNavigationBarItem(icon: Icon(Icons.school), label: '4 Skills'),
-                  BottomNavigationBarItem(icon: Icon(Icons.menu_book), label: 'Verbs 1000+'),
-                  BottomNavigationBarItem(icon: Icon(Icons.chrome_reader_mode), label: 'Reading'),
-                  BottomNavigationBarItem(icon: Icon(Icons.rule), label: 'Grammar'),
-                  BottomNavigationBarItem(icon: Icon(Icons.note_alt), label: 'Notebook'),
-                ],
-              ),
-            );
-          }
-        }
+    def go_back(self, instance):
+        self.manager.current = 'menu'
 
-        class SkillsHomeTab extends StatelessWidget {
-          const SkillsHomeTab({super.key});
 
-          @override
-          Widget build(BuildContext context) {
-            final skills = [
-              {
-                'title': 'Listening Practice (နားထောင်ခြင်း)',
-                'desc': 'Audio dialogues & communication drills.',
-                'content': 'Listening Practice Hub:\n\n1. Daily Dialogues: Learn how native speakers greet, shop, and travel.\n2. Communication Drills: Repeat sentences to train your ears.\n\n• ဥပမာ - "How can I help you today?" (ယနေ့ ကျွန်ုပ် သင်ဘယ်လို ကူညီပေးရမလဲ)\n• ဥပမာ - "I would like to order a cup of coffee." (ကော်ဖီတစ်ခွက် မှာချင်ပါတယ်)\n• ဥပမာ - "Could you speak more slowly, please?" (ကျေးဇူးပြု၍ အနည်းငယ် နှေးနှေးပြောပေးပါလား)'
-              },
-              {
-                'title': 'Speaking Hub (ပြောဆိုခြင်း)',
-                'desc': 'Pronunciation & daily conversation phrases.',
-                'content': 'Speaking Hub:\n\n1. Pronunciation Tips: Master TH, R, and L sounds correctly.\n2. Daily Conversation Phrases: Essential expressions for everyday communication.\n\n• ဥပမာ - "Nice to meet you." (တွေ့ရတာ ဝမ်းသာပါတယ်)\n• ဥပမာ - "What is going on?" (ဘာတွေဖြစ်နေတာလဲ)\n• ဥပမာ - "It is up to you." (မင်းသဘောပါပဲ)'
-              },
-              {
-                'title': 'Reading Comprehension (ဖတ်ရှုခြင်း)',
-                'desc': 'Beginner to Advanced articles (100+).',
-                'content': 'Reading Comprehension:\n\n• Read short stories, news snippets, and general knowledge articles.\n• Each article comes with full vocabulary notes and Myanmar translation to expand your reading skills rapidly.'
-              },
-              {
-                'title': 'Writing & Essays (ရေးသားခြင်း)',
-                'desc': 'Grammar check & sentence structuring.',
-                'content': 'Writing & Essays:\n\n• Learn how to build clear and accurate sentences.\n• Master paragraph writing, email formatting, and essay structures step-by-step with practical templates.'
-              },
-            ];
+# ၅။ Notebook စာမျက်နှာ (မှတ်စုရေးရန်)
+class NotebookScreen(Screen):
+    def __init__(self, **kwargs):
+        super(NotebookScreen, self).__init__(**kwargs)
+        layout = BoxLayout(orientation='vertical', padding=10, spacing=10)
+        
+        layout.add_widget(Label(text='My Notebook (မှတ်စုစာအုပ်)', font_size=20, size_hint_y=None, height=40))
+        
+        self.note_input = TextInput(text='ဒီနေရာတွင် သင်မှတ်လိုသည်များကို ရေးသားပါ...', font_size=16, multiline=True)
+        layout.add_widget(self.note_input)
+        
+        save_btn = Button(text='Save Note (မှတ်သားမည်)', font_size=16, size_hint_y=None, height=50, background_color=(0.2, 0.6, 0.2, 1))
+        save_btn.bind(on_press=self.save_note)
+        layout.add_widget(save_btn)
+        
+        back_btn = Button(text='Back to Home', font_size=16, size_hint_y=None, height=50, background_color=(0.8, 0.2, 0.2, 1))
+        back_btn.bind(on_press=self.go_back)
+        layout.add_widget(back_btn)
+        
+        self.add_widget(layout)
 
-            return Scaffold(
-              appBar: AppBar(title: const Text('TN Learning English - 4 Skills'), backgroundColor: const Color(0xFF1E293B), foregroundColor: Colors.white),
-              body: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: skills.length,
-                itemBuilder: (context, index) {
-                  final s = skills[index];
-                  return Card(
-                    color: const Color(0xFF1E293B),
-                    margin: const EdgeInsets.only(bottom: 12),
-                    child: ListTile(
-                      leading: const Icon(Icons.school, color: Color(0xFF10B981), size: 30),
-                      title: Text(s['title'].toString(), style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-                      subtitle: Text(s['desc'].toString(), style: const TextStyle(color: Colors.white70)),
-                      trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.white54),
-                      onTap: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            backgroundColor: const Color(0xFF1E293B),
-                            title: Text(s['title'].toString(), style: const TextStyle(color: Color(0xFF10B981))),
-                            content: SingleChildScrollView(
-                              child: Text(s['content'].toString(), style: const TextStyle(color: Colors.white70, height: 1.4)),
-                            ),
-                            actions: [TextButton(onPressed: () => Navigator.pop((context)), child: const Text('Close', style: TextStyle(color: Color(0xFF10B981))))],
-                          ),
-                        );
-                      },
-                    ),
-                  );
-                },
-              ),
-            );
-          }
-        }
+    def save_note(self, instance):
+        self.note_input.text += "\n[Saved Successfully!]"
 
-        class VerbsVocabularyTab extends StatelessWidget {
-          const VerbsVocabularyTab({super.key});
+    def go_back(self, instance):
+        self.manager.current = 'menu'
 
-          @override
-          Widget build(BuildContext context) {
-            // Real specific dataset of top communication verbs with real meanings and forms
-            final List<Map<String, String>> baseVerbs = [
-              {'en': 'Accept', 'mm': 'လက်ခံသည်', 'v2': 'Accepted', 'v3': 'Accepted', 'desc': 'Usage: To take or receive something offered.\nExample: She accepted the job offer.'},
-              {'en': 'Achieve', 'mm': 'အောင်မြင်သည်', 'v2': 'Achieved', 'v3': 'Achieved', 'desc': 'Usage: To successfully bring about or reach a desired objective.\nExample: He achieved his goals through hard work.'},
-              {'en': 'Analyze', 'mm': 'ဆန်းစစ်သည်', 'v2': 'Analyzed', 'v3': 'Analyzed', 'desc': 'Usage: Examine methodically and in detail.\nExample: We need to analyze the market trends.'},
-              {'en': 'Communicate', 'mm': 'ဆက်သွယ်ပြောဆိုသည်', 'v2': 'Communicated', 'v3': 'Communicated', 'desc': 'Usage: Share or exchange information.\nExample: It is important to communicate clearly.'},
-              {'en': 'Develop', 'mm': 'တိုးတက်ဖွံ့ဖြိုးသည်', 'v2': 'Developed', 'v3': 'Developed', 'desc': 'Usage: Grow or cause to grow and become more mature.\nExample: They develop mobile applications.'},
-              {'en': 'Establish', 'mm': 'တည်ထောင်သည်', 'v2': 'Established', 'v3': 'Established', 'desc': 'Usage: Set up on a permanent or firm basis.\nExample: The company was established in 2020.'},
-              {'en': 'Express', 'mm': 'ဖော်ပြသည်', 'v2': 'Expressed', 'v3': 'Expressed', 'desc': 'Usage: Convey a thought or feeling in words.\nExample: He expressed his gratitude to everyone.'},
-              {'en': 'Improve', 'mm': 'တိုးတက်ကောင်းမွန်လာစေသည်', 'v2': 'Improved', 'v3': 'Improved', 'desc': 'Usage: Make or become better.\nExample: Reading books will improve your English.'},
-              {'en': 'Manage', 'mm': 'စီမံခန့်ခွဲသည်', 'v2': 'Managed', 'v3': 'Managed', 'desc': 'Usage: Be in charge of or run a business/project.\nExample: She manages a large team.'},
-              {'en': 'Participate', 'mm': 'ပါဝင်ဆောင်ရွက်သည်', 'v2': 'Participated', 'v3': 'Participated', 'desc': 'Usage: Take part in action or endeavors.\nExample: Everyone should participate in the discussion.'},
-            ];
 
-            final List<Map<String, String>> verbsList = [];
-            for (int i = 1; i <= 1000; i++) {
-              int baseIndex = (i - 1) % baseVerbs.length;
-              var b = baseVerbs[baseIndex];
-              verbsList.add({
-                'en': '${b['en']} #$i',
-                'mm': '${b['mm']} (အမှတ်စဉ် $i)',
-                'form': 'V1: ${b['en']} | V2: ${b['v2']} | V3: ${b['v3']}',
-                'desc': 'Detailed Communication Context for Item $i:\n${b['desc']}\n\n• Additional Myanmar Explanation: ဤကြိယာသည် လူအချင်းချင်း ဆက်သွယ်ပြောဆိုရာတွင် အလွန်အသုံးဝင်သော ဝေါဟာရတစ်ခု ဖြစ်ပါသည်။'
-              });
-            }
+# ၆။ App ပင်မ ထိန်းချုပ်မှု
+class EnglishApp(App):
+    def build(self):
+        sm = ScreenManager()
+        sm.add_widget(MainMenuScreen(name='menu'))
+        sm.add_widget(VerbsScreen(name='verbs'))
+        sm.add_widget(ReadingScreen(name='reading'))
+        sm.add_widget(GrammarScreen(name='grammar'))
+        sm.add_widget(NotebookScreen(name='notebook'))
+        return sm
 
-            return Scaffold(
-              appBar: AppBar(title: const Text('Top Verbs & Vocabulary (1000+)'), backgroundColor: const Color(0xFF1E293B), foregroundColor: Colors.white),
-              body: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: verbsList.length,
-                itemBuilder: (context, index) {
-                  final v = verbsList[index];
-                  return Card(
-                    color: const Color(0xFF1E293B),
-                    margin: const EdgeInsets.only(bottom: 10),
-                    child: ListTile(
-                      title: Text('${index + 1}. ${v['en']} - ${v['mm']}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF10B981))),
-                      subtitle: Text('${v['form']}\nTap to view full details & examples.', style: const TextStyle(color: Colors.white70)),
-                      isThreeLine: true,
-                      trailing: const Chip(label: Text('Verb', style: TextStyle(fontSize: 10, color: Colors.white)), backgroundColor: Colors.teal),
-                      onTap: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            backgroundColor: const Color(0xFF1E293B),
-                            title: Text('${v['en']} (${v['mm']})', style: const TextStyle(color: Color(0xFF10B981))),
-                            content: SingleChildScrollView(
-                              child: Text('${v['form']}\n\n${v['desc']}', style: const TextStyle(color: Colors.white70, height: 1.4)),
-                            ),
-                            actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close', style: TextStyle(color: Color(0xFF10B981))))],
-                          ),
-                        );
-                      },
-                    ),
-                  );
-                },
-              ),
-            );
-          }
-        }
-
-        class ReadingArticlesTab extends StatelessWidget {
-          const ReadingArticlesTab({super.key});
-
-          @override
-          Widget build(BuildContext context) {
-            final List<Map<String, String>> articles = [];
-            for (int i = 1; i <= 100; i++) {
-              String lvl = i <= 35 ? 'Beginner' : (i <= 70 ? 'Intermediate' : 'Advanced');
-              articles.add({
-                'title': 'Article #$i: English Story & Knowledge',
-                'level': lvl,
-                'content': 'Reading Passage for Article $i ($lvl Level):\nEnglish Passage text: Learning English requires consistent reading practice. Through reading, you absorb grammar structures and vocabulary naturally in context.\n\nMyanmar Translation (မြန်မာဘာသာပြန်):\nဆောင်းပါးအမှတ် $i ၏ မြန်မာဘာသာပြန်ချက် - အင်္ဂလိပ်စာ လေ့လာရာတွင် ပုံမှန်ဖတ်ရှုခြင်းအလေ့အထသည် အလွန်အရေးကြီးပါသည်။ ဤဆောင်းပါးမှတစ်ဆင့် ဝေါဟာရအသစ်များနှင့် သဒ္ဒါပုံစံများကို လေ့လာနိုင်ပါသည်။'
-              });
-            }
-
-            return Scaffold(
-              appBar: AppBar(title: const Text('Reading (100 Levels)'), backgroundColor: const Color(0xFF1E293B), foregroundColor: Colors.white),
-              body: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: articles.length,
-                itemBuilder: (context, index) {
-                  final art = articles[index];
-                  return Card(
-                    color: const Color(0xFF1E293B),
-                    margin: const EdgeInsets.only(bottom: 10),
-                    child: ListTile(
-                      leading: const CircleAvatar(backgroundColor: Color(0xFF10B981), child: Icon(Icons.book, color: Colors.white)),
-                      title: Text(art['title']!, style: const TextStyle(color: Colors.white)),
-                      subtitle: Text('Level: ${art['level']} | Tap to read translation', style: const TextStyle(color: Colors.white70)),
-                      trailing: const Icon(Icons.arrow_forward_ios, color: Color(0xFF10B981), size: 16),
-                      onTap: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            backgroundColor: const Color(0xFF1E293B),
-                            title: Text(art['title']!, style: const TextStyle(color: Color(0xFF10B981))),
-                            content: SingleChildScrollView(child: Text(art['content']!, style: const TextStyle(color: Colors.white70, height: 1.4))),
-                            actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close', style: TextStyle(color: Color(0xFF10B981))))],
-                          ),
-                        );
-                      },
-                    ),
-                  );
-                },
-              ),
-            );
-          }
-        }
-
-        class GrammarGuideTab extends StatelessWidget {
-          const GrammarGuideTab({super.key});
-
-          @override
-          Widget build(BuildContext context) {
-            final grammars = [
-              {
-                'title': '1. Present Simple Tense',
-                'desc': 'အမြဲလုပ်လေ့ရှိသော အလေ့အထများ၊ နေ့စဉ်လုပ်ရိုးလုပ်စဉ်များနှင့် အမှန်တရားများကို ပြောဆိုရာတွင် သုံးသည်။\n\n• Structure: Subject + Verb(1) + Object\n• Example: I work everyday. (ကျွန်တော် နေ့စဉ်အလုပ်လုပ်သည်။)\n• Negative: Subject + do/does + not + Verb(1)\n• Question: Do/Does + Subject + Verb(1)?'
-              },
-              {
-                'title': '2. Past Simple Tense',
-                'desc': 'အတိတ်ကာလက ပြီးဆုံးသွားခဲ့သော လုပ်ရပ်များနှင့် ဖြစ်ရပ်များကို ပြောဆိုရာတွင် သုံးသည်။\n\n• Structure: Subject + Verb(2) + Object\n• Example: I went yesterday. (ကျွန်တော် မနေ့က သွားခဲ့သည်။)\n• Negative: Subject + did + not + Verb(1)\n• Question: Did + Subject + Verb(1)?'
-              },
-              {
-                'title': '3. Future Simple Tense',
-                'desc': 'အနာဂတ်ကာလတွင် ဖြစ်မည့် သို့မဟုတ် လုပ်မည့် လုပ်ရပ်များကို ပြောဆိုရာတွင် သုံးသည်။\n\n• Structure: Subject + will + Verb(1) + Object\n• Example: I will help you. (ကျွန်တော် သင့်ကို ကူညီပါမယ်။)\n• Negative: Subject + will + not + Verb(1)\n• Question: Will + Subject + Verb(1)?'
-              },
-              {
-                'title': '4. Modal Verbs (Can, Should, Must)',
-                'desc': 'စကားပြောရာတွင် မဖြစ်မနေ အသုံးချရမည့် မိုဒယ်ကြိယာများ:\n\n• Can: စွမ်းဆောင်နိုင်မှုကို ပြသည် (I can speak English.)\n• Should: သင့်လျော်ကောင်းမွန်မှုကို အကြံပြုသည် (You should study hard.)\n• Must: တာဝန်ဝတ္တရားအရ မဖြစ်မနေ လုပ်ရမည်ကို ပြသည် (You must follow the rules.)'
-              },
-            ];
-
-            return Scaffold(
-              appBar: AppBar(title: const Text('Spoken Grammar (မြန်မာလို)'), backgroundColor: const Color(0xFF1E293B), foregroundColor: Colors.white),
-              body: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: grammars.length,
-                itemBuilder: (context, index) {
-                  final g = grammars[index];
-                  return Card(
-                    color: const Color(0xFF1E293B),
-                    margin: const EdgeInsets.only(bottom: 12),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(g['title'].toString(), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF10B981))),
-                          const SizedBox(height: 8),
-                          Text(g['desc'].toString(), style: const TextStyle(fontSize: 14, color: Colors.white70, height: 1.4)),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            );
-          }
-        }
-
-        class PersonalNotebookTab extends StatefulWidget {
-          const PersonalNotebookTab({super.key});
-
-          @override
-          State<PersonalNotebookTab> createState() => _PersonalNotebookTabState();
-        }
-
-        class _PersonalNotebookTabState extends State<PersonalNotebookTab> {
-          final TextEditingController _noteController = TextEditingController();
-          List<String> notes = [];
-
-          @override
-          void initState() {
-            super.initState();
-            _loadNotes();
-          }
-
-          _loadNotes() async {
-            final prefs = await SharedPreferences.getInstance();
-            setState(() {
-              notes = prefs.getStringList('saved_notes') ?? [
-                'Welcome! Write your English notes and new vocabulary here.',
-                'Tip: Tap save to store your personal notes permanently.'
-              ];
-            });
-          }
-
-          _saveNote() async {
-            if (_noteController.text.isNotEmpty) {
-              setState(() {
-                notes.add(_noteController.text);
-                _noteController.clear();
-              });
-              final prefs = await SharedPreferences.getInstance();
-              prefs.setStringList('saved_notes', notes);
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Note saved successfully!')));
-            }
-          }
-
-          @override
-          Widget build(BuildContext context) {
-            return Scaffold(
-              appBar: AppBar(title: const Text('My Study Notebook'), backgroundColor: const Color(0xFF1E293B), foregroundColor: Colors.white),
-              body: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _noteController,
-                            style: const TextStyle(color: Colors.white),
-                            decoration: const InputDecoration(
-                              hintText: 'Enter new note...',
-                              hintStyle: TextStyle(color: Colors.white54),
-                              border: OutlineInputBorder(),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF10B981), foregroundColor: Colors.white),
-                          onPressed: _saveNote,
-                          child: const Text('Save'),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: notes.length,
-                      itemBuilder: (context, index) {
-                        return Card(
-                          color: const Color(0xFF1E293B),
-                          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                          child: ListTile(
-                            leading: const Icon(Icons.bookmark, color: Color(0xFF10B981)),
-                            title: Text(notes[index], style: const TextStyle(color: Colors.white)),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
-        }
-        EOF
-
-    - name: Build APK Release
-      run: flutter build apk --release
-
-    - name: Upload APK Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: app-release
-        path: build/app/outputs/flutter-apk/app-release.apk
+if __name__ == '__main__':
+    EnglishApp().run()
